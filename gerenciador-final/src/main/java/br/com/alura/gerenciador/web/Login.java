@@ -18,22 +18,42 @@ import br.com.alura.gerenciador.dao.UsuarioDAO;
 
 @WebServlet(urlPatterns = "/login")
 public class Login extends HttpServlet {
+    private static final long serialVersionUID = -8638354319336286115L;
 
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		String email = req.getParameter("email");
-		String senha = req.getParameter("senha");
-		Usuario usuario = new UsuarioDAO().buscaPorEmailESenha(email, senha);
-		PrintWriter writer = resp.getWriter();
-		if (usuario == null) {
-			writer.println("<html><body>Usuario invalido</body></html>");
-		} else {
-			HttpSession session = req.getSession();
-			session.setAttribute("usuarioLogado", usuario);
-			writer.println("<html><body>Usuario logado: " + email + "</body></html>");
-		}
+    static Map<String, Usuario> usuariosLogados = new HashMap<>();
 
-	}
+    private void doPostComCookies(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
+            IOException {
+        final String email = request.getParameter("email");
+        final String senha = request.getParameter("senha");
+        final Usuario usuario = new UsuarioDAO().buscaPorEmailESenha(email, senha);
+        final PrintWriter writer = response.getWriter();
+        if (usuario == null) {
+            writer.println("<html><body>Usuário inválido</body></html>");
+        } else {
+            final String codigoAleatorio = "" + System.currentTimeMillis() + "/" + Math.random();
+            Login.usuariosLogados.put(codigoAleatorio, usuario);
 
+            final Cookie cookie = new Cookie("usuarioLogado", usuario.getEmail());
+            cookie.setMaxAge(10 * 60);
+            response.addCookie(cookie);
+            writer.println("<html><html>Usuário logado: " + usuario.getEmail() + "</body></html>");
+        }
+    }
+
+    @Override
+    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException,
+            IOException {
+        final String email = request.getParameter("email");
+        final String senha = request.getParameter("senha");
+        final Usuario usuario = new UsuarioDAO().buscaPorEmailESenha(email, senha);
+        final PrintWriter writer = response.getWriter();
+        if (usuario == null) {
+            writer.println("<html><body>Usuário inválido</body></html>");
+        } else {
+            final HttpSession session = request.getSession();
+            session.setAttribute("usuarioLogado", usuario);
+            writer.println("<html><html>Usuário logado: " + usuario.getEmail() + "</body></html>");
+        }
+    }
 }

@@ -1,4 +1,4 @@
 <html>
-<body>
-Empresa adicionada com sucesso: ${empresa.nome}
-</body></html>
+<body>Empresa adicionada com sucesso: ${empresa.getNome()}
+</body>
+</html>
